@@ -1,0 +1,13 @@
+:root {
+    --color-primary:  #edb32e;
+}
+
+body {
+    background-color: #f7f7f7;
+    font-family:Roboto;
+}
+
+span[role=button], div[role=button]{
+    cursor: pointer;
+}
+
