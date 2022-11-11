@@ -1,3 +1,6 @@
+Installation:
+Klona, cd frontend, npm install, npm start.
+
 # Implementation av varukorgen
 
 Lösningen hämtar en lista av produkter från det mockade api:et och visar dem i en kortvy.
