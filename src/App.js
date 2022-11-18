@@ -1,27 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled from 'styled-components';
-import ProductCard from './components/ProductCard';
-import ShoppingCart from './components/ShoppingCart';
-import AddtoCartFeedback from './components/AddToCartFeedback';
+
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import Badge from '@mui/material/Badge';
 
-const StyledProductsArea = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
-  padding: 2rem;
+import ProductList from './components/ProductList';
+import ShoppingCart from './components/ShoppingCart';
+import AddtoCartFeedback from './components/AddToCartFeedback';
+import { API_URL } from './constants';
 
-  @media (max-width: 600px) {
-    gap: 0.5rem;
-    padding: 1rem 0rem;
-  }
-`;
+import { CartContext } from './CartContext';
 
 const StyledHeader = styled.header`
   display: flex;
   padding: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
   justify-content: space-between;
+  background-color: var(--color-primary);
   color: #fff;
   font-family: Rancho;
   font-size: clamp(1rem, 2.5vw, 2rem);
@@ -38,144 +35,60 @@ const StyledHeader = styled.header`
 
 function App() {
   const [products, setProducts] = useState(null);
-  const [cart, setCart] = useState(null);
   const [showCart, setShowCart] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
+  const { cart, setCart, showFeedback } = useContext(CartContext);
 
   useEffect(() => {
-    const fetchProducts = () => {
-      fetch('http://localhost:8181/products', { credentials: 'include' })
-        .then((response) =>
-          response.ok
-            ? response.json()
-            : Promise.reject(`Cannot communicate with the mocked REST API server (${response.statusText})`),
-        )
-        .then((products) => {
-          setProducts(products);
-        })
-        .catch((error) => {
-          alert(error);
-        });
+    const fetchProducts = async () => {
+      let response = await fetch(API_URL + 'products', { credentials: 'include' });
+
+      if (response.ok) {
+        const products = await response.json();
+        setProducts(products);
+      } else {
+        alert(`Cannot communicate with the mocked REST API server (${response.statusText})`);
+      }
     };
 
-    const fetchCart = () => {
-      fetch('http://localhost:8181/cart', { credentials: 'include' })
-        .then((response) =>
-          response.ok
-            ? response.json()
-            : Promise.reject(`Cannot communicate with the mocked REST API server (${response.statusText})`),
-        )
-        .then((cart) => {
-          setCart(cart);
-        })
-        .catch((error) => {
-          alert(error);
-        });
+    const fetchCart = async () => {
+      const response = await fetch(API_URL + 'cart', { credentials: 'include' });
+      if (response.ok) {
+        const cart = await response.json();
+        setCart(cart);
+      } else {
+        alert(`Cannot communicate with the mocked REST API server (${response.statusText})`);
+      }
     };
 
     fetchProducts();
     fetchCart();
   }, []);
 
-  const addItemToCart = (id) => {
-    const params = {
-      quantity: 1,
-    };
-
-    fetch('http://localhost:8181/cart/' + id, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(params),
-    })
-      .then((response) =>
-        response.ok
-          ? response.json()
-          : Promise.reject(`Cannot communicate with the mocked REST API server (${response.statusText})`),
-      )
-      .then((cart) => {
-        setCart(cart);
-        setShowFeedback(true);
-      })
-      .catch((error) => {
-        alert(error);
-      });
-  };
-
-  const emptyCart = () => {
-    fetch('http://localhost:8181/cart', {
+  const emptyCart = useCallback(async () => {
+    alert('empty cart');
+    const response = await fetch(API_URL + 'cart', {
       method: 'DELETE',
       credentials: 'include',
-    })
-      .then((response) =>
-        response.ok
-          ? response.json()
-          : Promise.reject(`Cannot communicate with the mocked REST API server (${response.statusText})`),
-      )
-      .then((cart) => {
-        setCart(null);
-        //setCounter(counter + 1);
-      })
-      .catch((error) => {
-        alert(error);
-      });
-  };
+    });
 
-  const removeItemFromCart = (id) => {
-    if (confirm('Är du säker på att du vill ta bort varan från varukorgen?')) {
-      const params = {
-        quantity: 1,
-      };
-
-      fetch('http://localhost:8181/cart/' + id, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-        .then((response) =>
-          response.ok
-            ? response.json()
-            : Promise.reject(`Cannot communicate with the mocked REST API server (${response.statusText})`),
-        )
-        .then((cart) => {
-          setCart(cart);
-        })
-        .catch((error) => {
-          alert(error);
-        });
+    if (response.ok) {
+      const cart = await response.json();
+      setCart(cart);
+    } else {
+      alert(`Cannot communicate with the mocked REST API server (${response.statusText})`);
     }
-  };
+  }, []);
 
-  const changeQuantityOfItem = (id, quantity) => {
-    const params = {
-      quantity: quantity,
-    };
-
-    fetch('http://localhost:8181/cart/' + id, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(params),
-    })
-      .then((response) =>
-        response.ok
-          ? response.json()
-          : Promise.reject(`Cannot communicate with the mocked REST API server (${response.statusText})`),
-      )
-      .then((cart) => {
-        setCart(cart);
-      })
-      .catch((error) => {
-        alert(error);
-      });
-  };
-
-  const handelShoppingCartKeyDown = (event) => {
+  const handleShoppingCartKeyDown = (event) => {
     if (event.key === 'Enter') {
       setShowCart(!showCart);
     }
   };
 
-  const noOfItems = cart ? cart.items.length : 0;
+  const showCartAndScrollToTop = () => {
+    if (!showCart) document.documentElement.scrollTop = 0;
+    setShowCart(!showCart);
+  };
 
   return (
     <div className="App">
@@ -183,34 +96,23 @@ function App() {
         <h1>Annas e-handel</h1>
 
         <Badge
-          onClick={() => setShowCart(!showCart)}
-          onKeyDown={(event) => handelShoppingCartKeyDown(event)}
+          onClick={() => showCartAndScrollToTop()}
+          onKeyDown={(event) => handleShoppingCartKeyDown(event)}
           badgeContent={cart?.items.length}
           color="primary"
           role="button"
           aria-label={showCart ? 'Göm varukorgen' : 'Visa varukorgen'}
           title={showCart ? 'Göm varukorgen' : 'Visa varukorgen'}
           tabIndex="0"
-          data-testid="noOfItems"
         >
           <ShoppingCartOutlinedIcon fontSize="large" />
         </Badge>
       </StyledHeader>
 
-      {cart && showCart && (
-        <ShoppingCart
-          cart={cart}
-          addItemToCart={addItemToCart}
-          removeItemFromCart={removeItemFromCart}
-          changeQuantityOfItem={changeQuantityOfItem}
-        />
-      )}
-      <StyledProductsArea>
-        {products?.map((product) => {
-          return <ProductCard key={product.id} product={product} addItemToCart={addItemToCart}></ProductCard>;
-        })}
-      </StyledProductsArea>
-      <AddtoCartFeedback isOpen={showFeedback} setShowFeedback={setShowFeedback} />
+      {showCart && <ShoppingCart showCart={setShowCart} />}
+      <ProductList products={products} />
+
+      <AddtoCartFeedback isOpen={showFeedback} />
       <button onClick={() => emptyCart()}>Töm varukorg</button>
     </div>
   );

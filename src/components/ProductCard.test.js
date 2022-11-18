@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-
+import { CartContext } from '../CartContext';
 import ProductCard from './ProductCard';
 
 const mockedProduct1 = {
@@ -22,6 +22,14 @@ const mockedProduct1 = {
 
 describe('ProductCard', () => {
   test('renders ProductCard component', () => {
-    render(<ProductCard product={mockedProduct1} />);
+    const addItemToCart = () => {};
+    render(
+      <CartContext.Provider value={addItemToCart}>
+        <ProductCard product={mockedProduct1} />
+      </CartContext.Provider>,
+    );
+    screen.debug();
+    const product = screen.getByRole('listitem');
+    expect(product).toBeInTheDocument();
   });
 });

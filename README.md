@@ -8,8 +8,6 @@ Genom att klicka på en Köp-knapp läggs produkten till i varukorgen.
 Varukorgen kan öppnas och stängas genom att klicka på ikonen uppe till höger.
 I varukorgen ser man de varor man lagt till, möjligheten finns också att ta bort samt öka antal.
 
-Funktionen för att minska funkar just nu inte då jag inte fått PUT-endpointen att fungera.
-
 Har tagit in material ui-biblioteket för användning av bl a ikoner.
 
 Längst ned på sidan finns en knapp för att tömma varukorgen, den ligger där mest för att underlätta testning.
