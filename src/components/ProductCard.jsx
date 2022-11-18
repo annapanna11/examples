@@ -1,6 +1,8 @@
+import { useContext } from 'react';
 import styled from 'styled-components';
 import { IMG_BASE_URL } from '../constants';
 import { getPrice } from '../utils';
+import { CartContext } from '../CartContext';
 
 const StyledProductCard = styled.article`
   border: solid 1px #efefef;
@@ -55,9 +57,11 @@ const StyledAddToCartButton = styled.button`
   }
 `;
 
-const ProductCard = ({ product, addItemToCart }) => {
+const ProductCard = ({ product }) => {
+  const { addItemToCart } = useContext(CartContext);
+
   return (
-    <StyledProductCard>
+    <StyledProductCard role="listitem">
       <StyledProductCardImgContainer>
         <img src={IMG_BASE_URL + product.imageUrl} alt={product.title} title={product.title} />
       </StyledProductCardImgContainer>

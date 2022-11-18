@@ -1,7 +1,10 @@
+import { useContext } from 'react';
 import styled from 'styled-components';
 import { getPrice } from '../utils';
+import { CartContext } from '../CartContext';
 import { IMG_BASE_URL } from '../constants';
 import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
 const StyledShoppingCartContainer = styled.div`
@@ -11,6 +14,7 @@ const StyledShoppingCartContainer = styled.div`
   background-color: #fff;
   border-radius: 3px;
   padding-bottom: 20px;
+  position: relative;
   h2 {
     text-align: center;
   }
@@ -19,20 +23,14 @@ const StyledShoppingCartContainer = styled.div`
 const StyledShoppingCart = styled.table`
   width: 100%;
 
-  @media (max-width: 600px) {
-    tr {
-      display: flex;
-      flex-direction: column;
-    }
-    td {
-      text-align: center !important;
-    }
+  tr td:last-child {
+    text-align: right;
   }
 
   td {
     padding: 10px;
     text-align: left;
-    border-bottom: solid 1px #f7f7f7;
+    border-bottom: solid 2px #f7f7f7;
 
     input {
       width: 20px;
@@ -46,6 +44,23 @@ const StyledShoppingCart = styled.table`
 
   h5 {
     text-align: left;
+  }
+
+  @media (max-width: 600px) {
+    td {
+      text-align: center !important;
+      border-bottom: 0;
+    }
+
+    tr {
+      display: flex;
+      flex-direction: column;
+
+      td:last-child {
+        text-align: right;
+        border-bottom: solid 2px #ccc;
+      }
+    }
   }
 `;
 
@@ -76,9 +91,26 @@ const StyledChangeQuantityText = styled.input`
   }
 `;
 
-const ShoppingCart = ({ cart, addItemToCart, removeItemFromCart, changeQuantityOfItem }) => {
+const StyledEmptyCart = styled.div`
+  text-align: center;
+`;
+
+const StyledCloseCart = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+`;
+
+const ShoppingCart = ({ showCart }) => {
+  const { cart, removeItemFromCart, changeQuantityOfItem } = useContext(CartContext);
+
   return (
     <StyledShoppingCartContainer>
+      <StyledCloseCart>
+        <IconButton aria-label="Stäng varukorgen" title="Stäng varukorgen." onClick={() => showCart(false)}>
+          <CloseIcon />
+        </IconButton>
+      </StyledCloseCart>
       <h2>Varukorg</h2>
       {cart?.items.length > 0 && (
         <StyledShoppingCart>
@@ -102,7 +134,7 @@ const ShoppingCart = ({ cart, addItemToCart, removeItemFromCart, changeQuantityO
                     <StyledChangeQuantityButton
                       title="Minska antal"
                       aria-label="Minska antal"
-                      onClick={() => changeQuantityOfItem(item.product.id, -1)}
+                      onClick={() => changeQuantityOfItem(item.product.id, Number(item.quantity) - 1)}
                     >
                       {' '}
                       -{' '}
@@ -112,14 +144,14 @@ const ShoppingCart = ({ cart, addItemToCart, removeItemFromCart, changeQuantityO
                     <StyledChangeQuantityButton
                       title="Öka antal"
                       aria-label="Öka antal"
-                      onClick={() => addItemToCart(item.product.id)}
+                      onClick={() => changeQuantityOfItem(item.product.id, Number(item.quantity) + 1)}
                     >
                       {' '}
                       +{' '}
                     </StyledChangeQuantityButton>
 
                     <IconButton
-                      aria-label="Ta bort produkten från varukorgen"
+                      aria-label="Ta bort produkten från varukorgen."
                       title="Ta bort produkten från varukorgen."
                       onClick={() => removeItemFromCart(item.product.id)}
                     >
@@ -131,15 +163,19 @@ const ShoppingCart = ({ cart, addItemToCart, removeItemFromCart, changeQuantityO
             })}
             <tr>
               <td colSpan="3">
-                <StyledShoppingCartTotal>Total: {getPrice(cart.summery)}</StyledShoppingCartTotal>
+                <StyledShoppingCartTotal>Total:&nbsp; {getPrice(cart.summery)}</StyledShoppingCartTotal>
               </td>
             </tr>
           </tbody>
         </StyledShoppingCart>
       )}
-      {cart.items.length === 0 && <div>Din varukorg är tom.</div>}
+      <EmptyCartMessage cart={cart} />
     </StyledShoppingCartContainer>
   );
+};
+
+const EmptyCartMessage = ({ cart }) => {
+  return !cart || cart?.items?.length === 0 ? <StyledEmptyCart>Din varukorg är tom.</StyledEmptyCart> : <></>;
 };
 
 export default ShoppingCart;

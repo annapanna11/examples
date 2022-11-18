@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useContext } from 'react';
+import { CartContext } from '../CartContext';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 
-const AddToCartFeedback = ({ isOpen, setShowFeedback }) => {
-  const [open, setOpen] = useState(isOpen);
-
-  useEffect(() => {
-    setOpen(isOpen);
-  }, [isOpen]);
-
+const AddToCartFeedback = ({ isOpen }) => {
+  const { setShowFeedback } = useContext(CartContext);
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
 
-    setOpen(false);
     setShowFeedback(false);
   };
 
@@ -29,7 +24,7 @@ const AddToCartFeedback = ({ isOpen, setShowFeedback }) => {
 
   return (
     <Snackbar
-      open={open}
+      open={isOpen}
       autoHideDuration={3000}
       onClose={handleClose}
       message="Varan lades i varukorgen"
